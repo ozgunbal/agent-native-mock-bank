@@ -73,6 +73,7 @@ export function navigationStateForPath(pathname: string): NavigationState {
 }
 
 function viewForPath(pathname: string): string {
+  if (pathname === "/bank" || pathname.startsWith("/bank/")) return "bank";
   if (isChatPathname(pathname)) return "chat";
   if (pathname === HOME_PATH) return "home";
   if (pathname.startsWith("/database")) return "database";
@@ -88,6 +89,8 @@ function viewForPath(pathname: string): string {
 
 function pathForView(view?: string): string {
   switch (view) {
+    case "bank":
+      return "/bank";
     case "chat":
     case "ask":
       return NEW_CHAT_PATH;

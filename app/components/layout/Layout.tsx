@@ -44,6 +44,12 @@ interface LayoutProps {
 
 const SIDEBAR_COLLAPSE_KEY = "chat.sidebar.collapsed";
 
+export const BANK_PATH = "/bank";
+
+function isBankPathname(pathname: string): boolean {
+  return pathname === BANK_PATH || pathname.startsWith(`${BANK_PATH}/`);
+}
+
 function routeOwnsToolbar(pathname: string): boolean {
   return (
     pathname === HOME_PATH ||
@@ -92,6 +98,8 @@ function LayoutShell({ children }: LayoutProps) {
   // Settings brings its own navigation, header, and agent toggle, so it
   // renders full width.
   const settingsOwnsChrome = isSettingsPathname(location.pathname);
+  // Mock Bank keeps its original full-page layout; the agent sidebar stays.
+  const bankOwnsChrome = isBankPathname(location.pathname);
   const chatHomeHandoffActive = useAgentChatHomeHandoff({
     storageKey: "chat",
     activePath: location.pathname,
@@ -158,7 +166,7 @@ function LayoutShell({ children }: LayoutProps) {
           className="md:hidden"
           onOpenNavigation={openMobileSidebar}
         />
-      ) : settingsOwnsChrome ? null : (
+      ) : settingsOwnsChrome || bankOwnsChrome ? null : (
         <Suspense fallback={<div className="h-12 shrink-0" />}>
           <Header onOpenMobileSidebar={openMobileSidebar} />
         </Suspense>
@@ -172,7 +180,7 @@ function LayoutShell({ children }: LayoutProps) {
   return (
     <HeaderActionsProvider>
       <div className="agent-layout-shell chat-layout-shell flex h-screen w-full overflow-hidden bg-background text-foreground">
-        {settingsOwnsChrome ? null : (
+        {settingsOwnsChrome || bankOwnsChrome ? null : (
           <div
             data-collapsed={sidebarCollapsed ? "true" : "false"}
             className="agent-layout-left-drawer hidden md:block"

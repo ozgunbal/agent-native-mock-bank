@@ -1,0 +1,91 @@
+/*
+ * Agent-Native host integration for the Mock Bank screen.
+ *
+ * The bank's own stylesheets (theme/app/agent/tour/showcase.css) are copied
+ * unchanged from web-ai-trials. They were written for a bare page with only
+ * browser defaults underneath, so this file puts those defaults back inside
+ * .web-ai-bank: it reverts the host's Tailwind preflight for bank elements
+ * (a later cascade layer than Tailwind's), and the bank's unlayered rules
+ * then apply on top, exactly as on the original page.
+ */
+@layer web-ai-bank-reset {
+  .web-ai-bank *:not(svg, svg *) {
+    all: revert;
+  }
+}
+
+/* What theme.css set on html/body in the original page. */
+.web-ai-bank {
+  min-height: 100vh;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: normal;
+  font-feature-settings: normal;
+  font-variation-settings: normal;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Additions for this host. */
+.web-ai-bank .store-loading {
+  padding: 48px 32px;
+  color: var(--color-text-muted);
+}
+
+.web-ai-bank .agent-mode-switch {
+  display: inline-flex;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.web-ai-bank .agent-mode-switch button {
+  background: transparent;
+  border: 0;
+  color: var(--color-text-muted);
+  font-size: 11px;
+  line-height: 1.4;
+  padding: 3px 8px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.web-ai-bank .agent-mode-switch button.on {
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+}
+
+.web-ai-bank .agent-mode-switch button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.web-ai-bank .via-cloud-tag {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.7;
+  margin-bottom: 2px;
+}
+
+/* Background cloud runs: a placeholder bubble until propose-intent arrives. */
+.web-ai-bank .msg-row.agent .msg-bubble.thinking {
+  color: var(--color-text-muted);
+  font-style: italic;
+  animation: cloud-thinking 1.6s ease-in-out infinite;
+}
+
+@keyframes cloud-thinking {
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .web-ai-bank .msg-row.agent .msg-bubble.thinking {
+    animation: none;
+  }
+}
+

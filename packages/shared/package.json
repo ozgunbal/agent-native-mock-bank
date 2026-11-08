@@ -1,0 +1,15 @@
+{
+  "name": "@web-ai/shared",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "echo 'no tests in shared yet' && exit 0",
+    "lint": "echo 'no lint configured for shared yet' && exit 0"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  }
+}

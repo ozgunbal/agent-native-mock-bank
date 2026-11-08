@@ -1,0 +1,77 @@
+:root {
+  --color-bg: #0b1220;
+  --color-surface: #131b2e;
+  --color-surface-raised: #1a2540;
+  --color-border: #263457;
+  --color-border-soft: #1e2a47;
+  --color-text: #e8ecf7;
+  --color-text-muted: #9aa6c4;
+  --color-text-faint: #6b7699;
+
+  --color-accent: #6ea8fe;
+  --color-accent-strong: #4c8bff;
+  --color-accent-soft: rgba(110, 168, 254, 0.14);
+
+  --color-allow: #34d399;
+  --color-allow-soft: rgba(52, 211, 153, 0.14);
+  --color-confirm: #fbbf24;
+  --color-confirm-soft: rgba(251, 191, 36, 0.14);
+  --color-block: #f87171;
+  --color-block-soft: rgba(248, 113, 113, 0.14);
+
+  /* Agent-driven UI touch — deliberately distinct from --color-accent (used
+     for human focus/hover) and from the allow/confirm/block decision colors,
+     so a field or screen the agent just acted on reads unambiguously as
+     "the agent did this," not as human focus or a policy decision. */
+  --color-agent-touch: #e879f9;
+  --color-agent-touch-soft: rgba(232, 121, 249, 0.16);
+
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+
+  --shadow-card: 0 8px 24px rgba(3, 7, 18, 0.45);
+  --shadow-pop: 0 16px 48px rgba(3, 7, 18, 0.6);
+
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  --font-mono: "SF Mono", "Fira Code", Menlo, Consolas, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+button {
+  font-family: inherit;
+}
+
+::selection {
+  background: var(--color-accent-soft);
+}
+
+/* subtle scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 8px;
+}

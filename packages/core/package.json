@@ -1,0 +1,15 @@
+{
+  "name": "@web-ai/core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Vendored from web-ai-trials@97a7f6d packages/core/src (tests, cli excluded). Do not edit here without syncing upstream.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./web": "./src/index.web.ts"
+  },
+  "dependencies": {
+    "zod": "4.5.2",
+    "@mlc-ai/web-llm": "0.2.84"
+  }
+}

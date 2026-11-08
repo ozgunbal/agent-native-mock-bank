@@ -31,3 +31,18 @@ Use `adding-a-feature` for functional parity and `frontend-design` for a user-fa
 Before building common workspace or agent UI, read `agent-native-toolkit`; for supported customization, read `customizing-agent-native`.
 
 - Guarded verification: run `pnpm agent-native:doctor`; fix findings before done.
+
+## Mock Bank domain
+
+`/bank` (the home path) is Mock Bank, ported from web-ai-trials' web-demo with the same screens and behaviour. Two agents drive it: the on-device Qwen2.5-1.5B (WebLLM, in the bank's own agent panel) and you, the cloud agent. You never move money directly.
+
+| Action | Who calls it | Notes |
+| --- | --- | --- |
+| `get-bank-state` | agent, UI | Accounts, payees, transactions for the signed-in user (seeded on first read). |
+| `propose-intent` | agent | The only way to act. Writes the intent to tab-scoped app state (`agent-intent:<tab>`); the bank screen re-grounds it, applies policy, fills the form visibly and submits only on allow or user confirm. |
+| `transfer-internal`, `pay-payee`, `add-payee-and-pay` | UI only (`agentTool: false`) | `needsApproval` = the core guardrail's decision is not `allow`, so non-UI callers (HTTP, MCP, CLI) cannot pass policy. |
+| `reset-bank` | UI only | Restores seed data. |
+
+Cloud mode in the bank panel starts a background run (`background: true`, `openSidebar: false`); the panel is the only visible surface, so every cloud turn must end in one `propose-intent` call (questions and off-topic replies use `need_clarification`). Anything the panel shows for cloud turns goes through `useAgentSession` messages and `sendExternal`, the same path as on-device parses.
+
+Invariants: the grounding/guardrail code lives in `packages/core` (vendored unchanged from web-ai-trials@97a7f6d; do not edit without syncing upstream). `app/bank/` mirrors web-demo's `src/`; keep its `data-agent-*` attributes. The bank screen writes `bank-screen:<tab>` for `view-screen`.

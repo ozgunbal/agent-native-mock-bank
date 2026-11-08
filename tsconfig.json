@@ -16,7 +16,13 @@
       "@shared/*": [
         "./shared/*"
       ]
-    }
+    },
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "exactOptionalPropertyTypes": false
   },
   "include": [
     "app/**/*",
