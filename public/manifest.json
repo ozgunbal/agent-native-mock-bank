@@ -1,7 +1,7 @@
 {
-  "name": "Web Ai Agent Native",
-  "short_name": "Web Ai Agent Native",
-  "description": "Workspace app for Web Ai Agent Native.",
+  "name": "Mock Bank",
+  "short_name": "Mock Bank",
+  "description": "Mock Bank: people, an on-device agent and a cloud agent share one guarded action layer.",
   "start_url": "./home",
   "background_color": "#111111",
   "theme_color": "#18181B",

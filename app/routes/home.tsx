@@ -1,17 +1,16 @@
-import HomePage from "@/components/home/HomePage";
+import { redirect } from "react-router";
+
 import { APP_TITLE } from "@/lib/app-config";
 
-const SEO_TITLE = `${APP_TITLE} - Open Source AI app starter with actions`;
+const SEO_TITLE = `${APP_TITLE} - people and agents on one guarded action layer`;
 const SEO_DESCRIPTION =
-  "Open Source starter for agent-native apps with durable chat, shared actions, UI state, tools, and a backend your agent can extend.";
+  "A banking demo built with Agent-Native: an on-device model, a cloud agent and external agents propose; one deterministic policy decides; you see and confirm every step.";
 
+// Shared with the chat routes.
 export function meta() {
   return [
     { title: SEO_TITLE },
-    {
-      name: "description",
-      content: SEO_DESCRIPTION,
-    },
+    { name: "description", content: SEO_DESCRIPTION },
     { property: "og:title", content: SEO_TITLE },
     { property: "og:description", content: SEO_DESCRIPTION },
     { name: "twitter:card", content: "summary" },
@@ -20,6 +19,16 @@ export function meta() {
   ];
 }
 
+// Mock Bank is the app's home (app.homePath = /bank); the template's Get
+// started page is retired, so old /home links land on the bank.
+export function loader() {
+  return redirect("/bank");
+}
+
+export function clientLoader() {
+  return redirect("/bank");
+}
+
 export default function HomeRoute() {
-  return <HomePage />;
+  return null;
 }

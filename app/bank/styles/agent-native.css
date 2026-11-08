@@ -190,3 +190,28 @@
     grid-column: 1 / -1;
   }
 }
+
+/* Agent panel header: keep the title, Device/Cloud switch and status on one
+   line; a long status ("downloading model…") truncates instead of wrapping. */
+.web-ai-bank .agent-header {
+  gap: 12px;
+}
+
+.web-ai-bank .agent-header-title,
+.web-ai-bank .agent-mode-switch {
+  flex-shrink: 0;
+}
+
+.web-ai-bank .agent-header-actions {
+  min-width: 0;
+}
+
+.web-ai-bank .model-status-pill {
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.web-ai-bank .model-status-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

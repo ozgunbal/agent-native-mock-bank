@@ -1,8 +1,8 @@
 {
   "name": "web-ai-agent-native",
-  "displayName": "Web Ai Agent Native",
+  "displayName": "Mock Bank",
   "private": true,
-  "description": "Workspace app for Web Ai Agent Native.",
+  "description": "Mock Bank: people, an on-device agent and a cloud agent share one guarded action layer.",
   "type": "module",
   "scripts": {
     "migrate:production": "tsx scripts/migrate-production.ts",

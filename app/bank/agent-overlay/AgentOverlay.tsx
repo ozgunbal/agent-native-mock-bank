@@ -105,7 +105,7 @@ export function AgentOverlay({
           ) : null}
           <span className="model-status-pill" data-testid="model-status">
             <span className={`status-dot ${cloud ? "ready" : modelStatus}`} />
-            {statusLabel}
+            <span className="model-status-text">{statusLabel}</span>
           </span>
           {tts.isSupported ? (
             <button
