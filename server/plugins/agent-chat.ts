@@ -9,6 +9,7 @@ import actionsRegistry from "../../.generated/actions-registry.js";
 const INITIAL_TOOL_NAMES = [
   "get-bank-state",
   "propose-intent",
+  "list-bank-activity",
   "view-screen",
   "navigate",
 ];

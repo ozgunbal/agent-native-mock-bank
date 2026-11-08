@@ -2,8 +2,8 @@ import { defineAction } from "@agent-native/core/action";
 import { evaluateIntent } from "@web-ai/core";
 import { z } from "zod";
 
-import { addPayeeAndPay, recordAudit, requireOwner } from "../server/lib/bank.js";
-import { amount, policyNeedsApproval, WriteResultSchema } from "../server/lib/bank-schemas.js";
+import { addPayeeAndPay, auditSource, recordAudit, requireOwner } from "../server/lib/bank.js";
+import { amount, submitActor, policyNeedsApproval, WriteResultSchema } from "../server/lib/bank-schemas.js";
 
 const toIntent = (args: { payeeName: string; payeeAccountRef: string; amount: number }) => ({
   type: "add_payee_and_pay" as const,
@@ -19,6 +19,7 @@ export default defineAction({
     payeeAccountRef: z.string().min(1).describe("New payee's external account reference"),
     fromAccountId: z.string().describe("Account id to pay from"),
     amount,
+    actor: submitActor,
   }),
   outputSchema: WriteResultSchema,
   agentTool: false,
@@ -28,7 +29,7 @@ export default defineAction({
     const { id } = await addPayeeAndPay(owner, args);
     const { decision, matchedRule } = evaluateIntent(toIntent(args));
     await recordAudit(owner, {
-      source: "ui-submit",
+      source: auditSource("submit", args.actor),
       intentType: "add_payee_and_pay",
       decision,
       ruleId: matchedRule.id,

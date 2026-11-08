@@ -1,4 +1,4 @@
-export type Screen = "accounts" | "transactions" | "transfer" | "pay";
+export type Screen = "accounts" | "transactions" | "transfer" | "pay" | "activity";
 
 export function Nav({ current, onChange }: { current: Screen; onChange: (s: Screen) => void }) {
   const items: { key: Screen; label: string }[] = [
@@ -6,6 +6,7 @@ export function Nav({ current, onChange }: { current: Screen; onChange: (s: Scre
     { key: "transactions", label: "Transactions" },
     { key: "transfer", label: "Transfer" },
     { key: "pay", label: "Pay" },
+    { key: "activity", label: "Activity" },
   ];
   return (
     <nav className="nav" data-tour="nav">

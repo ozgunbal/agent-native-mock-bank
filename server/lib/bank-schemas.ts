@@ -50,3 +50,28 @@ export const amount = z.coerce.number().positive().describe("Amount in USD, grea
 export function policyNeedsApproval(intent: Intent): boolean {
   return evaluateIntent(intent).decision !== "allow";
 }
+
+/** Who drove a step: the signed-in person, the on-device model, or the cloud agent. */
+export const Actor = z.enum(["user", "device-agent", "cloud-agent"]);
+export type Actor = z.infer<typeof Actor>;
+
+/**
+ * Who pressed submit, as reported by the bank screen (its agents submit the
+ * same visible form a person does). Display-only: it labels the activity
+ * feed and never changes what the action is allowed to do.
+ */
+export const submitActor = Actor.default("user").describe("Who drove this submit; activity label only");
+
+export const ActivityKind = z.enum(["proposal", "submit", "confirmed", "cancelled"]);
+
+export const ActivityEntrySchema = z.object({
+  id: z.string(),
+  createdAt: z.string(),
+  actor: Actor,
+  kind: ActivityKind,
+  intentType: z.string(),
+  decision: z.enum(["allow", "confirm", "block"]).nullable(),
+  ruleId: z.string().nullable(),
+  detail: z.string(),
+});
+export type ActivityEntry = z.infer<typeof ActivityEntrySchema>;

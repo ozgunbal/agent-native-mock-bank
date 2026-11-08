@@ -42,6 +42,8 @@ Before building common workspace or agent UI, read `agent-native-toolkit`; for s
 | `propose-intent` | agent | The only way to act. Writes the intent to tab-scoped app state (`agent-intent:<tab>`); the bank screen re-grounds it, applies policy, fills the form visibly and submits only on allow or user confirm. |
 | `transfer-internal`, `pay-payee`, `add-payee-and-pay` | UI only (`agentTool: false`) | `needsApproval` = the core guardrail's decision is not `allow`, so non-UI callers (HTTP, MCP, CLI) cannot pass policy. |
 | `reset-bank` | UI only | Restores seed data. |
+| `list-bank-activity` | agent, UI | The audit feed behind the Activity tab: proposals (device or cloud) with policy decisions, confirm/cancel answers, and submits with who drove them. |
+| `record-bank-activity` | UI only | Logs browser-only steps (device-model proposals, confirm/cancel). Submits carry a display-only `actor`. |
 
 Cloud mode in the bank panel starts a background run (`background: true`, `openSidebar: false`); the panel is the only visible surface, so every cloud turn must end in one `propose-intent` call (questions and off-topic replies use `need_clarification`). Anything the panel shows for cloud turns goes through `useAgentSession` messages and `sendExternal`, the same path as on-device parses.
 

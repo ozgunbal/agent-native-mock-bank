@@ -1,11 +1,13 @@
 import { fail } from "@agent-native/core/action";
 import type { Account, Payee, Transaction, TransactionCategory } from "@web-ai/shared";
 import { and, asc, desc, eq, sql } from "drizzle-orm";
+import type { z } from "zod";
 
 import { SEED_ACCOUNTS } from "../../app/bank/mock-data/accounts";
 import { SEED_PAYEES } from "../../app/bank/mock-data/payees";
 import { SEED_TRANSACTIONS } from "../../app/bank/mock-data/transactions";
 import { getDb, schema } from "../db/index.js";
+import { Actor, ActivityKind, type ActivityEntry } from "./bank-schemas.js";
 
 /** Same shape the web-demo reducer held (mock-data/store.tsx StoreState). */
 export interface BankState {
@@ -229,4 +231,44 @@ export async function recordAudit(
   await getDb()
     .insert(schema.bankAuditLog)
     .values({ id: crypto.randomUUID(), ownerEmail, createdAt: new Date().toISOString(), ...entry });
+}
+
+/** Audit rows store `<kind>:<actor>`; rows written before that shape keep their old names. */
+const LEGACY_SOURCES: Record<string, string> = {
+  "ui-submit": "submit:user",
+  "cloud-agent-proposal": "proposal:cloud-agent",
+};
+
+export function auditSource(kind: z.infer<typeof ActivityKind>, actor: Actor): string {
+  return `${kind}:${actor}`;
+}
+
+/** The user's most recent activity, newest first. */
+export async function listActivity(ownerEmail: string, limit: number): Promise<ActivityEntry[]> {
+  const l = schema.bankAuditLog;
+  const rows = await getDb()
+    .select()
+    .from(l)
+    .where(eq(l.ownerEmail, ownerEmail))
+    .orderBy(desc(l.createdAt))
+    .limit(limit);
+  return rows.flatMap((row) => {
+    const [kind, actor] = (LEGACY_SOURCES[row.source] ?? row.source).split(":");
+    const parsedKind = ActivityKind.safeParse(kind);
+    const parsedActor = Actor.safeParse(actor);
+    const decision = row.decision === "allow" || row.decision === "confirm" || row.decision === "block" ? row.decision : null;
+    if (!parsedKind.success || !parsedActor.success) return [];
+    return [
+      {
+        id: row.id,
+        createdAt: row.createdAt,
+        actor: parsedActor.data,
+        kind: parsedKind.data,
+        intentType: row.intentType,
+        decision,
+        ruleId: row.ruleId,
+        detail: row.detail,
+      },
+    ];
+  });
 }

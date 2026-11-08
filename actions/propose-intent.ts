@@ -3,7 +3,7 @@ import { writeAppStateForCurrentTab } from "@agent-native/core/application-state
 import { evaluateIntent, groundIntent, Intent } from "@web-ai/core";
 import { z } from "zod";
 
-import { loadBankState, recordAudit, requireOwner } from "../server/lib/bank.js";
+import { auditSource, loadBankState, recordAudit, requireOwner } from "../server/lib/bank.js";
 import { AGENT_INTENT_KEY, type AgentIntentCommand } from "../shared/bank-app-state.js";
 
 export default defineAction({
@@ -41,7 +41,7 @@ Use ids from get-bank-state. Returns what the app will do; tell the user that ou
     };
     await writeAppStateForCurrentTab(AGENT_INTENT_KEY, command);
     await recordAudit(owner, {
-      source: "cloud-agent-proposal",
+      source: auditSource("proposal", "cloud-agent"),
       intentType: intent.type,
       decision: verdict?.decision ?? null,
       ruleId: verdict?.matchedRule.id ?? null,

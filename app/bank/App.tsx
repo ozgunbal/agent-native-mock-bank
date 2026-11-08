@@ -9,6 +9,7 @@ import { AccountsScreen } from "./app/AccountsScreen";
 import { TransactionsScreen } from "./app/TransactionsScreen";
 import { TransferForm } from "./app/TransferForm";
 import { PayPayeeForm } from "./app/PayPayeeForm";
+import { ActivityScreen } from "./app/ActivityScreen";
 import { AgentOverlay, type AgentOverlayHandle } from "./agent-overlay/AgentOverlay";
 import { useAgentSession } from "./agent-overlay/useAgentSession";
 import { GuidedTour } from "./tour/GuidedTour";
@@ -92,6 +93,7 @@ export function App() {
             {screen === "transactions" && <TransactionsScreen />}
             {screen === "transfer" && <TransferForm />}
             {screen === "pay" && <PayPayeeForm />}
+            {screen === "activity" && <ActivityScreen />}
           </div>
 
           <AgentOverlay

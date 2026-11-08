@@ -17,6 +17,7 @@ import {
   type PolicyRule,
 } from "@web-ai/core/web";
 import { executeIntent } from "./adapter/executeIntent";
+import { markNextSubmitBy, recordActivity, type AgentActor } from "../cloud/activity";
 import { INTENT_SCREEN_MAP } from "../app/intentScreenMap";
 import type { Screen } from "../app/Nav";
 import { SEED_ACCOUNTS } from "../mock-data/accounts";
@@ -60,6 +61,10 @@ export interface AgentMessage {
   rawModelOutputs?: string[];
   /** How many retry attempts parseIntent needed before this result. Only set alongside a successful parse. */
   retriesUsed?: number;
+  /** On agent replies: which agent's proposal this was (for the activity feed and confirm/cancel). */
+  actor?: AgentActor;
+  /** On agent replies: the user's words that started this turn. */
+  requestText?: string;
   /** Placeholder while a background cloud run works; replaced by the run's result. */
   thinking?: boolean;
   /** Set on a cloud failure so the UI can offer the agent chat transcript. */
@@ -253,9 +258,17 @@ export function useAgentSession({
     async (
       text: string,
       parsed: Intent,
-      meta: { rawOutputs?: string[]; retriesUsed?: number; attempts?: AttemptRecord[] },
+      meta: { actor: AgentActor; rawOutputs?: string[]; retriesUsed?: number; attempts?: AttemptRecord[] },
       elapsed: () => number,
     ) => {
+      const { actor } = meta;
+      // Cloud proposals are logged server-side by propose-intent; the device
+      // model's only exist here, so log them from the browser.
+      const logDeviceProposal = (decision: "allow" | "confirm" | "block" | null, ruleId: string | null, detail: string) => {
+        if (actor === "device-agent") {
+          recordActivity({ kind: "proposal", actor, intentType: parsed.type, decision, ruleId, detail });
+        }
+      };
       // Code, not the model, maps references onto real accounts/payees and
       // checks them against real data (core/src/grounding.ts). Only a
       // grounded intent ever reaches the guardrail.
@@ -263,6 +276,7 @@ export function useAgentSession({
       if (grounding.status !== "ok") {
         const reason = grounding.status === "rejected" ? grounding.reason : grounding.question;
         auditLogRef.current.recordRejected(text, `Grounding ${grounding.status}: ${reason}`);
+        logDeviceProposal(null, null, `${grounding.status}: ${text}`);
         logLiveParse({
           text,
           outcome: grounding.status === "rejected" ? "grounding_rejected" : "needs_clarification",
@@ -291,6 +305,7 @@ export function useAgentSession({
 
       const { decision, matchedRule } = evaluateIntent(intent);
       auditLogRef.current.recordParsed(text, intent, decision, matchedRule);
+      logDeviceProposal(decision, matchedRule.id, text);
       logLiveParse({
         text,
         outcome: "parsed",
@@ -309,6 +324,8 @@ export function useAgentSession({
             role: "agent",
             text: `Blocked: ${matchedRule.reason}`,
             intent: intent,
+            actor,
+            requestText: text,
             rawModelOutputs: meta.rawOutputs,
             retriesUsed: meta.retriesUsed,
             decision,
@@ -327,6 +344,8 @@ export function useAgentSession({
             role: "agent",
             text: `This requires your confirmation: ${matchedRule.reason}`,
             intent: intent,
+            actor,
+            requestText: text,
             rawModelOutputs: meta.rawOutputs,
             retriesUsed: meta.retriesUsed,
             decision,
@@ -348,6 +367,8 @@ export function useAgentSession({
             role: "agent",
             text: screenCheck.reason,
             intent: intent,
+            actor,
+            requestText: text,
             rawModelOutputs: meta.rawOutputs,
             retriesUsed: meta.retriesUsed,
             decision,
@@ -357,6 +378,7 @@ export function useAgentSession({
         ]);
         return;
       }
+      markNextSubmitBy(actor);
       const execResult = await executeIntent(intent);
       setMessages((prev) => [
         ...prev,
@@ -440,7 +462,7 @@ export function useAgentSession({
         return;
       }
 
-      await handleParsedIntent(text, result.intent, result, elapsed);
+      await handleParsedIntent(text, result.intent, { ...result, actor: "device-agent" }, elapsed);
     },
     [ensureEngine, handleParsedIntent, modelStatus, getUserContext],
   );
@@ -477,7 +499,7 @@ export function useAgentSession({
         ]);
         return;
       }
-      await handleParsedIntent(text, parsed.data, {}, elapsed);
+      await handleParsedIntent(text, parsed.data, { actor: "cloud-agent" }, elapsed);
     },
     [handleParsedIntent],
   );
@@ -589,6 +611,9 @@ export function useAgentSession({
         ]);
         return;
       }
+      const actor = message.actor ?? "device-agent";
+      recordActivity({ kind: "confirmed", actor, intentType: message.intent.type, decision: message.decision, ruleId: message.matchedRule?.id, detail: message.requestText ?? message.intent.type });
+      markNextSubmitBy(actor);
       const execResult = await executeIntent(message.intent);
       setMessages((prev) => [
         ...prev,
@@ -605,6 +630,9 @@ export function useAgentSession({
 
   const cancel = useCallback((message: AgentMessage) => {
     if (!settleConfirm(message.id)) return;
+    if (message.intent) {
+      recordActivity({ kind: "cancelled", actor: message.actor ?? "device-agent", intentType: message.intent.type, decision: message.decision, ruleId: message.matchedRule?.id, detail: message.requestText ?? message.intent.type });
+    }
     setMessages((prev) => [
       ...prev,
       { id: `msg-${Date.now()}-a`, role: "agent", text: "Cancelled — nothing was executed." },

@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useReducer, useRef, type ReactNode } from "react";
 import { useActionMutation, useActionQuery } from "@agent-native/core/client/hooks";
+import { takeSubmitActor } from "../cloud/activity";
 import { useQueryClient } from "@tanstack/react-query";
 import type { Account, Transaction, Payee } from "@web-ai/shared";
 
@@ -125,15 +126,22 @@ function LoadedStore({ initial, children }: { initial: StoreState; children: Rea
               fromAccountId: action.fromAccountId,
               toAccountId: action.toAccountId,
               amount: action.amount,
+              actor: takeSubmitActor(),
             });
           case "PAY_PAYEE":
-            return pay.mutateAsync({ payeeId: action.payeeId, fromAccountId: action.fromAccountId, amount: action.amount });
+            return pay.mutateAsync({
+              payeeId: action.payeeId,
+              fromAccountId: action.fromAccountId,
+              amount: action.amount,
+              actor: takeSubmitActor(),
+            });
           case "ADD_PAYEE_AND_PAY":
             return addAndPay.mutateAsync({
               payeeName: action.payeeName,
               payeeAccountRef: action.payeeAccountRef,
               fromAccountId: action.fromAccountId,
               amount: action.amount,
+              actor: takeSubmitActor(),
             });
           case "RESET":
             return reset.mutateAsync({});
