@@ -144,7 +144,7 @@ export function AgentOverlay({
           messages.map((m) => (
             <div key={m.id} className={`msg-row ${m.role}`} data-role={m.role}>
               <div className={`msg-bubble${m.rejected ? " rejected" : ""}${m.thinking ? " thinking" : ""}`}>
-                {m.via === "cloud" ? <span className="via-cloud-tag">via cloud agent</span> : null}
+                {m.via ? <span className="via-cloud-tag">{m.via === "external" ? "via external agent" : "via cloud agent"}</span> : null}
                 {m.text}
                 {m.role === "agent" && m.elapsedMs !== undefined ? (
                   <span className="elapsed-badge" title="Time to respond">

@@ -13,7 +13,7 @@ export default defineAction({
   description: "Log a Mock Bank step that happened in the browser to the user's activity feed. Called by the bank screen.",
   schema: z.object({
     kind: z.enum(["proposal", "confirmed", "cancelled"]),
-    actor: z.enum(["device-agent", "cloud-agent"]).describe("The agent whose proposal this was"),
+    actor: z.enum(["device-agent", "cloud-agent", "external-agent"]).describe("The agent whose proposal this was"),
     intentType: z.string().max(64),
     decision: z.enum(["allow", "confirm", "block"]).nullable().default(null),
     ruleId: z.string().max(128).nullable().default(null),

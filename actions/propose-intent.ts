@@ -4,7 +4,7 @@ import { evaluateIntent, groundIntent, Intent } from "@web-ai/core";
 import { z } from "zod";
 
 import { auditSource, loadBankState, recordAudit, requireOwner } from "../server/lib/bank.js";
-import { AGENT_INTENT_KEY, type AgentIntentCommand } from "../shared/bank-app-state.js";
+import { AGENT_INTENT_KEY, type AgentIntentCommand, type ProposingAgent } from "../shared/bank-app-state.js";
 
 export default defineAction({
   description: `Hand one banking request to the Mock Bank screen the user is looking at. This is the ONLY way to act on the user's bank: the app then runs the same code path as its on-device agent — it grounds the intent against real accounts/payees, applies the policy (allow / confirm / block), switches screen, visibly fills the form, and submits only if policy allows or the user confirms.
@@ -34,14 +34,20 @@ Use ids from get-bank-state. Returns what the app will do; tell the user that ou
     const grounding = groundIntent(intent, { accounts, payees }, userText);
     const verdict = grounding.status === "ok" ? evaluateIntent(grounding.intent) : null;
 
+    // The app's own agent runs as a tool call from a browser tab; anything
+    // else (Claude Code over MCP, the CLI, A2A) is an external agent. Without
+    // a browser tab the proposal goes to the user's visible bank tab.
+    const actor: ProposingAgent = ctx?.caller === "tool" ? "cloud-agent" : "external-agent";
     const command: AgentIntentCommand = {
       _writeId: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       userText,
       intent,
+      actor,
+      createdAt: Date.now(),
     };
     await writeAppStateForCurrentTab(AGENT_INTENT_KEY, command);
     await recordAudit(owner, {
-      source: auditSource("proposal", "cloud-agent"),
+      source: auditSource("proposal", actor),
       intentType: intent.type,
       decision: verdict?.decision ?? null,
       ruleId: verdict?.matchedRule.id ?? null,
@@ -61,6 +67,10 @@ Use ids from get-bank-state. Returns what the app will do; tell the user that ou
         : decision === "confirm"
           ? "The app is asking the user to confirm before anything runs."
           : "Policy blocked it; nothing will run.";
-    return { status: "handed_to_app" as const, decision, message: `${next} (${matchedRule.reason})` };
+    const where =
+      actor === "external-agent"
+        ? " It runs in the user's open Mock Bank tab; if no tab is open within 2 minutes, it expires unrun."
+        : "";
+    return { status: "handed_to_app" as const, decision, message: `${next} (${matchedRule.reason})${where}` };
   },
 });

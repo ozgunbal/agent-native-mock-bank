@@ -132,7 +132,8 @@
   background: var(--color-agent-touch-soft);
 }
 
-.web-ai-bank .activity-actor.cloud-agent {
+.web-ai-bank .activity-actor.cloud-agent,
+.web-ai-bank .activity-actor.external-agent {
   color: var(--color-agent-touch);
   box-shadow: inset 0 0 0 1px var(--color-agent-touch-soft);
 }

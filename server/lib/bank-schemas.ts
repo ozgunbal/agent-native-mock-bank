@@ -52,7 +52,7 @@ export function policyNeedsApproval(intent: Intent): boolean {
 }
 
 /** Who drove a step: the signed-in person, the on-device model, or the cloud agent. */
-export const Actor = z.enum(["user", "device-agent", "cloud-agent"]);
+export const Actor = z.enum(["user", "device-agent", "cloud-agent", "external-agent"]);
 export type Actor = z.infer<typeof Actor>;
 
 /**

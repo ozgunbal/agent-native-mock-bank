@@ -39,7 +39,7 @@ Before building common workspace or agent UI, read `agent-native-toolkit`; for s
 | Action | Who calls it | Notes |
 | --- | --- | --- |
 | `get-bank-state` | agent, UI | Accounts, payees, transactions for the signed-in user (seeded on first read). |
-| `propose-intent` | agent | The only way to act. Writes the intent to tab-scoped app state (`agent-intent:<tab>`); the bank screen re-grounds it, applies policy, fills the form visibly and submits only on allow or user confirm. |
+| `propose-intent` | agent | The only way to act. Writes the intent to tab-scoped app state (`agent-intent:<tab>`), or, for callers without a browser tab (MCP, CLI, A2A), to `agent-intent`, which the visible bank tab takes; proposals expire after 2 minutes. The bank screen re-grounds it, applies policy, fills the form visibly and submits only on allow or user confirm. |
 | `transfer-internal`, `pay-payee`, `add-payee-and-pay` | UI only (`agentTool: false`) | `needsApproval` = the core guardrail's decision is not `allow`, so non-UI callers (HTTP, MCP, CLI) cannot pass policy. |
 | `reset-bank` | UI only | Restores seed data. |
 | `list-bank-activity` | agent, UI | The audit feed behind the Activity tab: proposals (device or cloud) with policy decisions, confirm/cancel answers, and submits with who drove them. |

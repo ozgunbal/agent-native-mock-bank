@@ -36,7 +36,7 @@ export interface AgentMessage {
   role: "user" | "agent";
   text: string;
   /** Set on user messages that came from the cloud agent rather than this panel's on-device model. */
-  via?: "cloud";
+  via?: "cloud" | "external";
   intent?: Intent;
   decision?: Decision;
   matchedRule?: PolicyRule;
@@ -474,22 +474,23 @@ export function useAgentSession({
    * on-device model's output.
    */
   const sendExternal = useCallback(
-    async (text: string, proposal: unknown) => {
+    async (text: string, proposal: unknown, actor: "cloud-agent" | "external-agent" = "cloud-agent") => {
       // A proposal answering this panel's own cloud send resolves that turn
       // (its user bubble is already shown); one started from the agent chat
-      // directly gets its user bubble here, as before.
-      const turn = cloudTurnsRef.current.shift();
+      // or by an external agent gets its user bubble here.
+      const turn = actor === "cloud-agent" ? cloudTurnsRef.current.shift() : undefined;
       const startedAt = turn?.startedAt ?? Date.now();
       const elapsed = () => Date.now() - startedAt;
       if (turn) {
         clearTimeout(turn.timer);
         setMessages((prev) => prev.filter((m) => m.id !== `${turn.id}-thinking`));
       } else {
-        setMessages((prev) => [...prev, { id: `msg-${Date.now()}-u`, role: "user", text, via: "cloud" }]);
+        const via = actor === "external-agent" ? "external" : "cloud";
+        setMessages((prev) => [...prev, { id: `msg-${Date.now()}-u`, role: "user", text, via }]);
       }
       const parsed = Intent.safeParse(proposal);
       if (!parsed.success) {
-        const reason = `The cloud agent's proposal did not match the intent schema (${parsed.error.issues
+        const reason = `The ${actor === "external-agent" ? "external" : "cloud"} agent's proposal did not match the intent schema (${parsed.error.issues
           .map((i) => i.path.join(".") || i.message)
           .join(", ")}).`;
         auditLogRef.current.recordRejected(text, reason);
@@ -499,7 +500,7 @@ export function useAgentSession({
         ]);
         return;
       }
-      await handleParsedIntent(text, parsed.data, { actor: "cloud-agent" }, elapsed);
+      await handleParsedIntent(text, parsed.data, { actor }, elapsed);
     },
     [handleParsedIntent],
   );

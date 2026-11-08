@@ -1,7 +1,7 @@
 import { callAction } from "@agent-native/core/client/hooks";
 
 /** Who drove a step, matching the server's Actor enum (server/lib/bank-schemas.ts). */
-export type Actor = "user" | "device-agent" | "cloud-agent";
+export type Actor = "user" | "device-agent" | "cloud-agent" | "external-agent";
 export type AgentActor = Exclude<Actor, "user">;
 
 /**

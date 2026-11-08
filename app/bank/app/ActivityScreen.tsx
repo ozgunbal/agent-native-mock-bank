@@ -19,6 +19,7 @@ const ACTOR_LABEL: Record<Actor, string> = {
   user: "You",
   "device-agent": "On-device agent",
   "cloud-agent": "Cloud agent",
+  "external-agent": "External agent",
 };
 
 const INTENT_LABEL: Record<string, string> = {
