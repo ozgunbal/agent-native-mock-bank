@@ -17,6 +17,9 @@ export interface EngineLoadProgress {
   text: string;
 }
 
+/** Where WebLLM keeps downloaded model files (see loadEngine). */
+export const WEBLLM_CACHE_BACKEND = "indexeddb" as const;
+
 export class WebLlmEngineClient implements EngineClient {
   private enginePromise: Promise<import("@mlc-ai/web-llm").MLCEngineInterface> | null = null;
   private onProgress?: (report: EngineLoadProgress) => void;
@@ -82,6 +85,13 @@ export class WebLlmEngineClient implements EngineClient {
         const engine = await webllm.CreateMLCEngine(
           this.modelId,
           {
+            // LOCAL CHANGE (agent-native-mock-bank, not yet upstream): store the
+            // model in IndexedDB instead of the Cache API. Cache.add() on
+            // Hugging Face's redirect chain fails intermittently with
+            // "Cache.add() encountered a network error" even when a plain
+            // fetch() of the same URL succeeds; the IndexedDB backend
+            // downloads with fetch() and avoids it.
+            appConfig: { ...webllm.prebuiltAppConfig, cacheBackend: WEBLLM_CACHE_BACKEND },
             initProgressCallback: (report) => {
               this.lastProgressText = report.text;
               this.onProgress?.({
@@ -301,14 +311,29 @@ interface CacheStorageLike {
  * and safe to call outside a browser (no-ops).
  */
 export async function clearWebLlmCache(): Promise<void> {
+  const isWebLlm = (name: string) => name.toLowerCase().includes("webllm") || name.toLowerCase().includes("mlc");
   const globalCaches = (globalThis as { caches?: CacheStorageLike }).caches;
-  if (!globalCaches) return;
-  const keys = await globalCaches.keys();
-  await Promise.all(
-    keys
-      .filter((key) => key.toLowerCase().includes("webllm") || key.toLowerCase().includes("mlc"))
-      .map((key) => globalCaches.delete(key)),
-  );
+  if (globalCaches) {
+    const keys = await globalCaches.keys();
+    await Promise.all(keys.filter(isWebLlm).map((key) => globalCaches.delete(key)));
+  }
+  // LOCAL CHANGE: models now live in IndexedDB (WEBLLM_CACHE_BACKEND), so clear those databases too.
+  const idb = (globalThis as { indexedDB?: IDBFactory }).indexedDB;
+  if (idb?.databases) {
+    const databases = await idb.databases();
+    await Promise.all(
+      databases
+        .map((db) => db.name)
+        .filter((name): name is string => !!name && isWebLlm(name))
+        .map(
+          (name) =>
+            new Promise<void>((resolve) => {
+              const req = idb.deleteDatabase(name);
+              req.onsuccess = req.onerror = req.onblocked = () => resolve();
+            }),
+        ),
+    );
+  }
 }
 
 export interface StorageQuotaCheck {

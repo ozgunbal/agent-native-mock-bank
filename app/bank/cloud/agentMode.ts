@@ -48,6 +48,33 @@ export async function sendToCloudAgent(text: string): Promise<CloudSendResult> {
   }
 }
 
+// Agent-Native's sidebar events (toolkit agent-sidebar-events / core agent-chat).
+const AGENT_PANEL_PREPARE_EVENT = "agent-panel:prepare";
+const AGENT_CHAT_RUNNING_EVENT = "agentNative.chatRunning";
+
+/**
+ * While cloud mode is on, keep the closed agent sidebar's chat panel mounted.
+ *
+ * A closed sidebar mounts its panel only while a run is active and unmounts it
+ * the moment the run ends — while the panel is still saving the thread
+ * snapshot. That aborted save surfaces as a "Save failed" toast after every
+ * cloud turn. Re-preparing the panel in the same event dispatch that reports
+ * the run ending keeps it mounted (React batches both updates), so the save
+ * completes. The panel stays hidden; nothing opens.
+ */
+export function useKeepCloudChatMounted(active: boolean) {
+  useEffect(() => {
+    if (!active) return;
+    const prepare = () => window.dispatchEvent(new CustomEvent(AGENT_PANEL_PREPARE_EVENT));
+    const onRunning = (event: Event) => {
+      if ((event as CustomEvent<{ isRunning?: boolean }>).detail?.isRunning === false) prepare();
+    };
+    prepare();
+    window.addEventListener(AGENT_CHAT_RUNNING_EVENT, onRunning);
+    return () => window.removeEventListener(AGENT_CHAT_RUNNING_EVENT, onRunning);
+  }, [active]);
+}
+
 /** Opens the agent chat sidebar, where the cloud runs' full transcripts live. */
 export function openCloudChat() {
   requestAgentSidebarOpen();

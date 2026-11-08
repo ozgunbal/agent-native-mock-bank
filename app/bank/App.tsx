@@ -16,7 +16,7 @@ import { GuidedTour } from "./tour/GuidedTour";
 import { TourNudge } from "./tour/TourNudge";
 import { useTourNudge } from "./tour/useTourNudge";
 import { ArchitectureShowcase } from "./architecture-showcase/ArchitectureShowcase";
-import { openCloudChat, sendToCloudAgent, useAgentMode, useBankScreenState } from "./cloud/agentMode";
+import { openCloudChat, sendToCloudAgent, useAgentMode, useBankScreenState, useKeepCloudChatMounted } from "./cloud/agentMode";
 import { useCloudIntents } from "./cloud/useCloudIntents";
 
 /**
@@ -52,6 +52,7 @@ export function App() {
   // through the same pipeline as the on-device model; the current screen is
   // mirrored to app state so the cloud agent can see it.
   const agentMode = useAgentMode();
+  useKeepCloudChatMounted(agentMode.mode === "cloud");
   useCloudIntents(session.sendExternal);
   useBankScreenState(screen);
 
